@@ -28,30 +28,5 @@ WHILE @@FETCH_STATUS = 0
  			WITH $(_parameters)
    			FETCH NEXT FROM db_cursor INTO @name   
 		END
-
-
- 
-/* @par = 'DIFFERENTIAL'
-	BEGIN
-		WHILE @@FETCH_STATUS = 0   
-		BEGIN   
-   			SET @fileName = @path + @name +'.bak'  
-   			BACKUP DATABASE @name TO DISK = @fileName
- 			WITH DIFFERENTIAL,COMPRESSION 
-   			FETCH NEXT FROM db_cursor INTO @name   
-		END
-	END   
-ELSE
-	BEGIN
-		WHILE @@FETCH_STATUS = 0   
-		BEGIN   
-   			SET @fileName = @path + @name +'.bak'  
-   			BACKUP DATABASE @name TO DISK = @fileName
- 			WITH COMPRESSION 
-   			FETCH NEXT FROM db_cursor INTO @name   
-		END  
-    	END
-*/
-
 CLOSE db_cursor   
 DEALLOCATE db_cursor
