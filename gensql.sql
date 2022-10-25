@@ -8,7 +8,6 @@ SELECT @recovery = '$(_recovery)' -- model of recovery
 SELECT @what = '$(_what)' -- Type of generated .sql script
 SELECT @files = '$(_files)' -- No. of archive in .bak for restore
 
-
 IF @what = 'restore'
 	BEGIN
 		IF @files < = 1
@@ -29,7 +28,6 @@ REPLACE, STATS = 5, FILE = $(_files)'
 			 END;
 
 	END;
-
 
 IF @what = 'attach'
 	BEGIN
