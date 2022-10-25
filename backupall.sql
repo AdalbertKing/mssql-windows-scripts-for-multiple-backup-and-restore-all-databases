@@ -3,7 +3,6 @@ DECLARE @path NVARCHAR(512) -- path for backup files
 DECLARE @fileName NVARCHAR(512) -- filename for backup  
 DECLARE @fileDate NVARCHAR(40) -- used for file name
 DECLARE @par NVARCHAR(256) -- used for parameters
-
  
 -- specify database backup directory
 SET @path = '$(_path)'

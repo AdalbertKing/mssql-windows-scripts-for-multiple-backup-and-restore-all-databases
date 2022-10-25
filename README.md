@@ -76,7 +76,7 @@ In your scenario it is necessary to set the correct server IP with the SQL insta
 You can map the network resource with backups to a local folder, in this scenario it is c:\dump\. It is important that it is equally visible on the server with MSSQL and on the workstation from which the scripts will be run.
 
 
-Scenrios of recovery databses:
+Scenarios of recovery databses:
 I. The scenario of fully restoring the databases from a .bak copy consists of three stages: 
 
 Stage 1: running an automatically generated .sql query restoreall.sql for recovery databases from .bak for FULL copies by command:
@@ -111,7 +111,7 @@ You can map the network resource with backups to a local folder, in this scenari
 
 2.Full copies are made with INIT,FORMAT parameters, resulting in the creation of a new file. bak and resetting the backup cycle with the writing of this information to the database.
  Differential copies are made with the FORMAT parameter. As a result, we have in the directories with backups the last full copy and the last differential copy.
- Which allows you to recover databases to the state after the full backup, or after the last differential. To recover databases to any point in the past, you need to add a mechanism for archiving directories with .bak. betwen backup tasks,
+ Which allows you to recover databases to the state after the full backup, or after the last differential. To recover databases to any point in the past, you need to add a mechanism for archiving directories with .bak. between backup tasks,
  or create them on a snapshot file system (ZFS, BTRFS). You can also exclude FORMAT and INIT parameters from the scripts, which will result in incrementing .bak files.
  However, this will affect the correctness of the restoreall.sql query, which in this version does not yet support the FILES = n parameter that allows you to specify the archive position in the .bak file from which you want to restore 
  the database. Implementing this mechanism is difficult because each database may be created at a different time , and thus will have a different FILES parameter at a given time.
