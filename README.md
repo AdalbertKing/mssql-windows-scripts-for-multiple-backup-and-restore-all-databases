@@ -2,43 +2,49 @@ A package of .BAT scripts and .sql queries for MSSQL for Windows to perform an a
 
 The main application, is a complete backup with automatic recovery procedure.
 
-The second application is to implement a mirror of two or more SQL servers by automatically uploading differential backups of all running databases to the backup server.
+The second application is to implement a backup of two or more SQL servers by automatically uploading differential backups of all running databases to the backup server. 
 
 (E.g. between MSSQL Server for Linux and for Windows )
 
 Scripts description:
 
-1. backupall.bat [option] [backup_path] -Backup all databases to the backup_path with options for .sql query.
+1. backupall.bat [option] [backup_path] [group_bases]-Backup all databases to the backup_path with options for .sql query.
 
         [options] - string with options pushed to the .sql query after "WITH" 
+		[group-bases]- {new|all}  all databases or only new added after last full backup 
 e.g:
 
-C:\sql\backupall.bat FORMAT,INIT,NO_COMPRESSION c:\dump\sqlfull\		
+C:\sql\backupall.bat FORMAT,INIT,NO_COMPRESSION c:\dump\sqlfull\ all
+C:\sql\backupall.bat FORMAT,INIT,NO_COMPRESSION c:\dump\sqlfull\ new	
+C:\sql\backupall.bat FORMAT,INIT,NO_COMPRESSION c:\dump\sqlfull\ all	
+C:\sql\backupall.bat DIFFERENTIAL,FORMAT c:\dump\sqldiff\ all
 		
 2. backup.sql - used by backupall.bat	-SQL query with options for create backup all databases on 
 
 launched from .bat script by command:
 
-sqlcmd -S [ip_sqlserver] -U sa -P [sqlpassword] -i backupall.sql -v _path="%2" -v _parameters=%1
+sqlcmd -S [ip_sqlserver] -U sa -P [sqlpassword] -i backupall.sql -v _path="%2" -v _parameters=%1 -v onlynew="%3"
 
 
 @path = '$(_path)'    	-- database backup directory
 
 @par = '$(_parameters)'	-- parameters added for restore/attach option to generated script
+@onlynew - '$(_onlynew)'-- all or added databases after last full backup
 
 
 4. gensql.sql	- used by backupall.bat		-SQL query with options to generate .sql scipt to the STDOUT for multiple operation on databases
 
 launched from .bat script by command - an a example:
 
-sqlcmd -S [ip_sqlserver] -U sa -P [sqlpassword] -i gensql.sql -v _what=restore -v _path="%2" -v _recovery=NORECOVERY -v _files=1 -W >%2restoreall.sql
+sqlcmd -S [ip_sqlserver] -U sa -P [sqlpassword] -i gensql.sql -v _what=restore -v _path="%2" -v _recovery=NORECOVERY -v _files=1 -v _onlynew=all -W >%2restoreall.sql
 
 @folderpath = '$(_path)' 	-- Backup Location
 @recovery = '$(_recovery)' 	-- model of recovery
 @what = '$(_what)'		-- Type of generated .sql script [attach|restore|setrecovery]
 @files = '$(_files)' 		-- FILES parameter
+@onlynew - '$(_onlynew)'-- all or added databases after last full backup
 
-4. copy_mdf.bat %1		 -Copy all databas files from sql server data after stop sql server, than start sql server.
+4. copy_mdf.bat %1		-- Copy all databas files from sql server data after stop sql server, than start sql server.
 
  %1 - path for copy
  
@@ -55,11 +61,17 @@ A working example:
 4. MSSQL Server IP: 192.168.11.4
 
 5. backupfull.xml  - Ones a day at 23:15 Task Scheduler runs task  used command:
-				C:\sql\backupall.bat "FORMAT,INIT,NO_COMPRESSION" c:\dump\sqlfull\
+				
+				C:\sql\backupall.bat "FORMAT,INIT,NO_COMPRESSION" c:\dump\sqlfull\ all
 				      					  
 				creates full backups of all databases, and two scripts: restoreall.sql and setrecovery.sql for restore all backups and switch recovery state bases on final step of restoring backups.
 6. backupdiff.xml  - Every day From 10:00 every two hours to 22:00 Task Scheduler runs task used command:
-				C:\sql\backupall.bat "DIFFERENTIAL,FORMAT" c:\dump\sqldiff\
+
+				1. C:\sql\backupall.bat "FORMAT,INIT,NO_COMPRESSION" c:\dump\sqlfull\ new
+				
+				creates full backups of new added databases after last full backup (they has not differential backup yet), and scripts for them: restorenew.sql and setrecoveryall.sql, than join them to main scripts in full backup path
+				2. C:\sql\backupall.bat "DIFFERENTIAL,FORMAT" c:\dump\sqldiff\
+				
 				creates differential backups of all databases, and two scripts restoreall.sql and setrecovery.sql for restore all backups and switch recovery state bases on final step of restoring backups.
 7. copymdf.xml	- used for scenario with first stopping sql server, than coping all .mdf and .ldf files to the c:\dump\mdfcopy\ and creates query attachall.sql for attach all copied databases
 				Need to change IP with instance, name of MSSQLSERVER service running on windows and path to folder with .mdf,.ldf:
@@ -111,12 +123,13 @@ You can map the network resource with backups to a local folder, in this scenari
 
 2.Full copies are made with INIT,FORMAT parameters, resulting in the creation of a new file. bak and resetting the backup cycle with the writing of this information to the database.
  Differential copies are made with the FORMAT parameter. As a result, we have in the directories with backups the last full copy and the last differential copy.
- Which allows you to recover databases to the state after the full backup, or after the last differential. To recover databases to any point in the past, you need to add a mechanism for archiving directories with .bak. between backup tasks,
- or create them on a snapshot file system (ZFS, BTRFS). You can also exclude FORMAT and INIT parameters from the scripts, which will result in incrementing .bak files.
- However, this will affect the correctness of the restoreall.sql query, which in this version does not yet support the FILES = n parameter that allows you to specify the archive position in the .bak file from which you want to restore 
- the database. Implementing this mechanism is difficult because each database may be created at a different time , and thus will have a different FILES parameter at a given time.
- For this reason, the optimal seems to be a daily cycle for FULL backups, because the new base after its creation (for example, the addition of a new entity in the program by the accountant) has a chance to be copied on the same day
- and enter the differential cycle of the next day.
+ Which allows you to recover databases to the state after the full backup, or after the last differential. To recover databases to any point in the past, you need to add a mechanism for archiving directories with .bak. between
+ backup tasks, or create them on a snapshot file system (ZFS, BTRFS). You can also exclude FORMAT and INIT parameters from the scripts, which will result in incrementing .bak files.
+ However, this will affect the correctness of the restoreall.sql query, which in this version does not support the FILES = n parameter yet, that allows you to specify the archive position in the continuos .bak file.
+ Implementing this mechanism is difficult because each database may be created at a different time , and thus will have a different FILES parameter at a given time.
+ 
+ This version of the scripts allows you to extend the period between full backups, as I added a mechanism for identifying newly added databases (after the last full copy), and performing a full backup for them immediately
+(during a differential copy)
  
  
 I hope that my work will help someone to implement and automate backup or mirror on SQL server for Windows with multiple databases. I would appreciate reporting bugs and suggestions for improving the procedure.
