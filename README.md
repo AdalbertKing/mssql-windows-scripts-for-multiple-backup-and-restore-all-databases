@@ -25,7 +25,6 @@ launched from .bat script by command:
 
 sqlcmd -S [ip_sqlserver] -U sa -P [sqlpassword] -i backupall.sql -v _path="%2" -v _parameters=%1 -v onlynew="%3"
 
-
 @path = '$(_path)'    	-- database backup directory
 
 @par = '$(_parameters)'	-- parameters added for restore/attach option to generated script
