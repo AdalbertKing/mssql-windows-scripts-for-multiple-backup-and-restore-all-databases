@@ -60,12 +60,12 @@ A working example:
 3. Differential backup path: c:\dump\sqldiff\
 4. MSSQL Server IP: 192.168.11.4
 
-5. backupfull.xml  - Ones a day at 23:15 Task Scheduler runs task  used command:
+5. backupfull.xml  - Exporter task scheduler entry: Ones a day at 23:15 Task Scheduler runs task  used command:
 				
 				C:\sql\backupall.bat "FORMAT,INIT,NO_COMPRESSION" c:\dump\sqlfull\ all
 				      					  
 				creates full backups of all databases, and two scripts: restoreall.sql and setrecovery.sql for restore all backups and switch recovery state bases on final step of restoring backups.
-6. backupdiff.xml  - Every day From 10:00 every two hours to 22:00 Task Scheduler runs task used command:
+6. backupdiff.xml  -Exporter task scheduler entry: Every day From 10:00 every two hours to 22:00 Task Scheduler runs task used command:
 
 				1. C:\sql\backupall.bat "FORMAT,INIT,NO_COMPRESSION" c:\dump\sqlfull\ new
 				

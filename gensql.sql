@@ -10,7 +10,6 @@ SELECT @what = '$(_what)' -- Type of generated .sql script
 SELECT @files = '$(_files)' -- No. of archive in .bak for restore
 SET @onlynew = '$(_onlynew)'
 
-
 IF @what = 'restore'
 	BEGIN
 		IF @files < = 1
@@ -28,7 +27,6 @@ REPLACE, STATS = 5
 								)
 				)
 			 END;
-
 		IF @files > 1
  			BEGIN
 			        SELECT 'RESTORE DATABASE['+z.name+'] FROM DISK = ''' +@folderpath + "" + z.name+'.bak'' WITH $(_recovery),
@@ -43,11 +41,8 @@ REPLACE, STATS = 5, FILE = $(_files)
 									WHERE bs.type = 'D' AND z.name = bs.database_name
 								)
 					)
-
 			 END;
-
 	END;
-
 
 IF @what = 'attach'
 	BEGIN
@@ -77,13 +72,4 @@ IF @what = 'setrecovery'
 									WHERE bs.type = 'D' AND z.name = bs.database_name
 								)
 					)
-		
 	END;
-
-
-
-
-
-
-
-
