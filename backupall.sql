@@ -7,8 +7,10 @@ DECLARE @onlynew NVARCHAR(5)
 SET @path = '$(_path)'
 SET @par = '$(_parameters)'
 SET @onlynew = '$(_onlynew)'
+ 
 -- specify filename format
 SELECT @fileDate = CONVERT(NVARCHAR(20),GETDATE(),112) 
+
 
 DECLARE db_cursor CURSOR READ_ONLY FOR
 SELECT z.name
@@ -34,3 +36,4 @@ WHILE @@FETCH_STATUS = 0
 		END
 CLOSE db_cursor   
 DEALLOCATE db_cursor
+
